@@ -9,6 +9,7 @@ from ubuntu_sso.keyring.pykeyring import USERNAME
 from yaml import safe_dump, load
 import sys, os,requests, uuid, hashlib, shutil 
 import json, codecs, io
+from subprocess import Popen
 
 GITHUB_API="https://api.github.com/"
 CLIENT_ID="0a68d223de982e650c04"
@@ -42,16 +43,21 @@ class Article(object):
             #assume order by time
             print len(commits)
             
+            print fork['owner']['login']
+            url = 'https://github.com/'+fork['owner']['login']+'/'+self.name+'.git'
+            fetchCommitFiles(url)
+
             for c in reversed(commits):
                 if self.commits.has_key(c["sha"]):
                     continue
                 commit = Commit(c,self)
                 self.addCommit(commit)
-                #saveCommitFiles(self.name, c["sha"])
+                saveCommitFiles(self.name, c["sha"])
             #add fork to the last commit 
             c = commits[0]
             commit = self.commits[c["sha"]]
             commit.addFolks(fork)
+            
         #set commit children
         for commit in self.commits.values():
             for parent in commit.getParents(): 
@@ -66,12 +72,14 @@ class Article(object):
         f.close()
         return
 
+def fetchCommitFiles(url):
+    print url
+    Popen('./vFetch.sh %s' % (url,), shell=True)
+
 def saveCommitFiles(article_name, commit_id):
-    #os.system("mkdir dist"+article_name+commit_id)
-    print commit_id
-    os.system("git checkout "+commit_id)
-    os.system("mkdir dist/"+article_name)
-    os.system("cp dist/tmp/README.md dist/"+article_name+"/"+commit_id)
+    # run shell script vStore.sh
+    print article_name, commit_id
+    Popen('./vStore.sh %s %s' % (article_name, commit_id,), shell=True)
 
 def getAllFolks(article,fork): 
     article.forks.append(fork)
@@ -144,6 +152,7 @@ class ArticleSpider(object):
             article.crawl()
         '''
         repository_info = getRepo(self.repository_url)
+        #print repository_info
         self.article = Article(repository_info)
         self.article.crawl()
         
@@ -184,10 +193,9 @@ if __name__ == "__main__":
         os.makedirs('dist')
     if not os.path.exists(os.path.join(os.getcwd(),'dist/tmp')):
         os.makedirs('dist/tmp')
-    repository_url = sys.argv[1]
-    print repository_url
+    repository_url = 'dbxinj/gitireadme.spider'#sys.argv[1]
+    #print repository_url
     spider = ArticleSpider(repository_url, "dist/tmp")
     spider.crawl()
     spider.render()
-    
     
