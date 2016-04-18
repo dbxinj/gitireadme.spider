@@ -5,10 +5,10 @@ basePath=dist
 #	mkdir $basePath/tmp
 #fi
 
-cd ..
 git checkout $2
 if [ ! -d "$basePath/$1" ]; then
 	mkdir $basePath/$1
 fi
-cp ../README.md dist/$1/$2.md
+echo 'cp README.md $basePath/$1/$2.md'
+cp README.md dist/$1/$2.md
 git checkout master

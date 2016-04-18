@@ -12,6 +12,7 @@ import json, codecs, io
 from subprocess import Popen
 
 GITHUB_API="https://api.github.com/"
+GITHUB='https://github.com/'
 CLIENT_ID="0a68d223de982e650c04"
 CLIENT_SECRET="399f6072804f110a031c7c67f7a8132700ad3af0"
 LANGUGES=["en","zh"]
@@ -32,7 +33,7 @@ class Article(object):
         
     def crawl(self):
         # get the root repository
-        root=getRoot(self.raw)
+        root = getRoot(self.raw)
         # get all forks recursively
         getAllFolks(self, root)
         for fork in self.forks:
@@ -44,7 +45,7 @@ class Article(object):
             print len(commits)
             
             print fork['owner']['login']
-            url = 'https://github.com/'+fork['owner']['login']+'/'+self.name+'.git'
+            url = GITHUB+fork['owner']['login']+'/'+self.name+'.git'
             fetchCommitFiles(url)
 
             for c in reversed(commits):
@@ -73,13 +74,15 @@ class Article(object):
         return
 
 def fetchCommitFiles(url):
+    print 'fetching...'
     print url
-    Popen('./vFetch.sh %s' % (url,), shell=True)
+    Popen('./script/vFetch.sh %s' % (url,), shell=True)
 
 def saveCommitFiles(article_name, commit_id):
     # run shell script vStore.sh
+    print 'saving...'
     print article_name, commit_id
-    Popen('./vStore.sh %s %s' % (article_name, commit_id,), shell=True)
+    Popen('./script/vStore.sh %s %s' % (article_name, commit_id,), shell=True)
 
 def getAllFolks(article,fork): 
     article.forks.append(fork)
@@ -88,9 +91,11 @@ def getAllFolks(article,fork):
         for f in forks:
             getAllFolks(article, f)
 
-#TODO
 def getRoot(raw):
-    return raw
+    if raw['fork'] == True:
+        return raw['source']
+    else:
+        return raw
 
 class Commit(object):
     def __init__(self,raw,article):
@@ -193,7 +198,7 @@ if __name__ == "__main__":
         os.makedirs('dist')
     if not os.path.exists(os.path.join(os.getcwd(),'dist/tmp')):
         os.makedirs('dist/tmp')
-    repository_url = 'dbxinj/gitireadme.spider'#sys.argv[1]
+    repository_url = sys.argv[1]
     #print repository_url
     spider = ArticleSpider(repository_url, "dist/tmp")
     spider.crawl()

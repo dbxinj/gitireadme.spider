@@ -5,7 +5,6 @@ basePath=dist
 #	mkdir $basePath/tmp
 #fi
 
-cd ..
 git init
 echo "git remote set-url origin $1"
 git remote set-url origin $1
