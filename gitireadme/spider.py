@@ -36,14 +36,15 @@ class Article(object):
         root = getRoot(self.raw)
         # get all forks recursively
         getAllFolks(self, root)
+        print 'forks:', len(self.forks)
         for fork in self.forks:
             #print fork["name"]
             commits_url = fork["commits_url"].replace("{/sha}","?sha=master")
             print commits_url
             commits = getUrl(commits_url)
             #assume order by time
-            print len(commits)
-            
+
+            print 'commits:', len(commits)
             print fork['owner']['login']
             url = GITHUB+fork['owner']['login']+'/'+self.name+'.git'
             fetchCommitFiles(url)
@@ -53,11 +54,13 @@ class Article(object):
                     continue
                 commit = Commit(c,self)
                 self.addCommit(commit)
-                saveCommitFiles(self.name, c["sha"])
             #add fork to the last commit 
             c = commits[0]
             commit = self.commits[c["sha"]]
             commit.addFolks(fork)
+            if not os.path.exists(os.path.join(os.getcwd(),'dist',self.name,c["sha"]+'.md')):
+                    print os.path.join('dist',self.name,c["sha"]+'.md')
+                    saveCommitFiles(self.name, c["sha"])
             
         #set commit children
         for commit in self.commits.values():
@@ -75,7 +78,6 @@ class Article(object):
 
 def fetchCommitFiles(url):
     print 'fetching...'
-    print url
     Popen('./script/vFetch.sh %s' % (url,), shell=True)
 
 def saveCommitFiles(article_name, commit_id):
