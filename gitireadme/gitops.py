@@ -9,7 +9,7 @@ def gitFetch(directory, url):
 		os.system("cd %s" % os.path.join(os.getcwd(),directory))
 	os.system("git init")
 	os.system("git remote set-url origin %s" % directory)
-	os.system("git fetch origin master")
+	os.system("git fetch origin")
 
 def gitStore(directory, article_name, commit_id):
 	'''

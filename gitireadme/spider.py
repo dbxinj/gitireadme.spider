@@ -79,13 +79,11 @@ class Article(object):
         # get all forks recursively
         getAllFolks(self, root)
         for fork in self.forks:
-            print fork["forks_url"]
             user = User(fork, self.name)
             if self.parent.has_key(user.id):
                 parent = self.parent[user.id]
             else:
                 parent = ''
-            print parent
             self.addUser(user)
             user.addInfo()
             user.addParent(parent)
